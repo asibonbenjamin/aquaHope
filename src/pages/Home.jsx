@@ -12,18 +12,18 @@ export default function Home() {
     <div>
       <section className="hero">
         <div style={{ maxWidth: 900, margin: '0 auto', textAlign: 'center'}}>
-          <div className="pill" style={{ color: '#e5e7eb' }}>Get Involved</div>
-          <h1 style={{ fontSize: 64, margin: '14px 0 8px' }}>
+          <div className="pill" style={{ color: '#e5e7eb', textAlign: 'center' }}>Get Involved</div>
+          <h1 style={{ fontSize: 64, margin: '14px 0 8px', textAlign: 'center' }}>
             Water Saves <span className="highlight">Life</span>
           </h1>
-          <p style={{ fontSize: 20 }}>
+          <p style={{ fontSize: 20, textAlign: 'center' }}>
             We build strength, stability, and self reliance through access to safe water.
           </p>
-          <div className="cta" style={{ justifyContent: 'center', marginTop: 14 }}>
+          <div className="cta" style={{ justifyContent: 'center', marginTop: 14, display: 'flex', alignItems: 'center' }}>
             <NavLink className="btn" to="/donate">Act Now</NavLink>
             <NavLink className="btn ghost" to="/gallery">See Impact</NavLink>
           </div>
-          <div className="stats" style={{ marginTop: 18 }}>
+          <div className="stats" style={{ marginTop: 18, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <div className="stat"><div className="num">{totalDonationsEth.toFixed(2)} ETH</div><div className="muted">Total Donated</div></div>
             <div className="stat"><div className="num">{villagesHelped}</div><div className="muted">Villages Helped</div></div>
             <div className="stat"><div className="num">{totalDonors}</div><div className="muted">Donors</div></div>
@@ -73,13 +73,70 @@ export default function Home() {
       </section>
 
       <section style={{ marginTop: 40 }}>
-        <div className="pill">Communities in Need</div>
-        <div className="gallery-grid" style={{ marginTop: 12 }}>
-          <img src="animal.png" alt="" />
-          <img src="business.png" alt="" />
-          <img src="education.png" alt="" />
-          <img src="emergency.png" alt="" />
-          <img src="other.png" alt="" />
+        <div className="pill">Featured Donations</div>
+        <h2 style={{ margin: '8px 0 8px' }}>Clean Water for African Villages</h2>
+        <p className="muted" style={{ maxWidth: 700, margin: '0 auto 20px', textAlign: 'center' }}>
+          Every borehole we drill transforms lives. Clean water means healthier children, empowered women, and thriving communities.
+        </p>
+        <div className="featured-grid">
+          <div className="featured-card">
+            <img src="animal.png" alt="Rural Village Water" />
+            <div className="card-content">
+              <h3>Rural Village Water</h3>
+              <p className="muted">Bring clean water to remote villages where women and children walk hours daily to fetch contaminated water from distant sources.</p>
+              <div className="card-actions">
+                <NavLink to="/donate" className="btn">Donate</NavLink>
+                <button className="btn ghost">View Details</button>
+              </div>
+            </div>
+          </div>
+          <div className="featured-card">
+            <img src="business.png" alt="School Water Access" />
+            <div className="card-content">
+              <h3>School Water Access</h3>
+              <p className="muted">Install boreholes at schools so children can stay hydrated and focused on learning instead of searching for water.</p>
+              <div className="card-actions">
+                <NavLink to="/donate" className="btn">Donate</NavLink>
+                <button className="btn ghost">View Details</button>
+              </div>
+            </div>
+          </div>
+          <div className="featured-card">
+            <img src="education.png" alt="Health Center Wells" />
+            <div className="card-content">
+              <h3>Health Center Wells</h3>
+              <p className="muted">Provide clean water to health centers and clinics, reducing waterborne diseases and improving patient care in rural areas.</p>
+              <div className="card-actions">
+                <NavLink to="/donate" className="btn">Donate</NavLink>
+                <button className="btn ghost">View Details</button>
+              </div>
+            </div>
+          </div>
+          <div className="featured-card">
+            <img src="emergency.png" alt="Drought Relief" />
+            <div className="card-content">
+              <h3>Drought Relief</h3>
+              <p className="muted">Emergency water solutions for communities facing severe drought, ensuring families have access to life-saving clean water.</p>
+              <div className="card-actions">
+                <NavLink to="/donate" className="btn">Donate</NavLink>
+                <button className="btn ghost">View Details</button>
+              </div>
+            </div>
+          </div>
+          <div className="featured-card">
+            <img src="other.png" alt="Community Wells" />
+            <div className="card-content">
+              <h3>Community Wells</h3>
+              <p className="muted">Deep borehole drilling projects that serve entire communities, transforming villages with reliable access to clean, safe water.</p>
+              <div className="card-actions">
+                <NavLink to="/donate" className="btn">Donate</NavLink>
+                <button className="btn ghost">View Details</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style={{ textAlign: 'center', marginTop: 20 }}>
+          <NavLink to="/gallery" className="btn ghost">View All Campaigns</NavLink>
         </div>
       </section>
 

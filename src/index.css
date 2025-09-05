@@ -39,7 +39,7 @@ a { color: inherit; text-decoration: none; }
 .stats-inline { display: flex; gap: 30px; color: #1f2937; }
 .pill-green { color: var(--primary-dark); font-weight: 700; }
 
-.hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 28px; align-items: center; padding: 60px 36px; border-radius: 18px; background: linear-gradient(0deg, rgba(1, 98, 113, 0.524), rgba(0, 0, 0, 0.536)), url('https://goodlayers.b-cdn.net/chariti/demo3/wp-content/uploads/sites/5/2020/03/hp3-slider-1.jpg') center/cover no-repeat; color: #fff; }
+.hero { display: flex; align-items: center; justify-content: center; padding: 80px 36px; border-radius: 18px; background: linear-gradient(0deg, rgba(1, 98, 113, 0.524), rgba(0, 0, 0, 0.536)), url('https://goodlayers.b-cdn.net/chariti/demo3/wp-content/uploads/sites/5/2020/03/hp3-slider-1.jpg') center/cover no-repeat; color: #fff; min-height: 70vh; }
 .hero h1 { font-size: 48px; margin: 0 0 10px; line-height: 1.1; }
 .hero p { color: #e5e7eb; margin: 0 0 16px; font-size: 18px; }
 .hero .cta { display: flex; gap: 12px; }
@@ -64,6 +64,15 @@ a { color: inherit; text-decoration: none; }
 
 .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
 .gallery-grid img { width: 100%; height: 180px; object-fit: cover; border-radius: 10px; }
+
+.featured-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.featured-card { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.featured-card img { width: 100%; height: 200px; object-fit: cover; }
+.card-content { padding: 16px; }
+.card-content h3 { margin: 0 0 8px; }
+.card-content p { margin: 0 0 12px; }
+.card-actions { display: flex; gap: 8px; }
+.card-actions .btn { flex: 1; text-align: center; }
 
 .donate-panel { max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
 .donate-panel input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin: 8px 0 12px; background: #fff; color: var(--text); }
