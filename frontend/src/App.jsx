@@ -6,6 +6,8 @@ import Donate from './pages/Donate.jsx'
 import Gallery from './pages/Gallery.jsx'
 import Donations from './pages/Donations.jsx'
 import Account from './pages/Account.jsx'
+import Governance from './pages/Governance.jsx'
+import ClaimTokens from './pages/ClaimTokens.jsx'
 import { WalletProvider, useWallet } from './wallet/WalletContext.jsx'
 
 function UtilityBar() {
@@ -61,6 +63,8 @@ function NavBar() {
           <nav className="nav">
           <NavLink to="/" end className={({ isActive }) => isActive ? 'link active' : 'link'}>Home</NavLink>
           <NavLink to="/donate" className={({ isActive }) => isActive ? 'link active' : 'link'}>Donate</NavLink>
+          <NavLink to="/governance" className={({ isActive }) => isActive ? 'link active' : 'link'}>Governance</NavLink>
+          <NavLink to="/claim-tokens" className={({ isActive }) => isActive ? 'link active' : 'link'}>Claim Tokens</NavLink>
           <NavLink to="/gallery" className={({ isActive }) => isActive ? 'link active' : 'link'}>Gallery</NavLink>
           <NavLink to="/donations" className={({ isActive }) => isActive ? 'link active' : 'link'}>Donations</NavLink>
           <NavLink to="/account" className={({ isActive }) => isActive ? 'link active' : 'link'}>Account</NavLink>
@@ -73,6 +77,8 @@ function NavBar() {
             <nav className="nav" style={{ justifyContent: 'center' }}>
               <NavLink to="/" end className={({ isActive }) => isActive ? 'link active' : 'link'}>Home</NavLink>
               <NavLink to="/donate" className={({ isActive }) => isActive ? 'link active' : 'link'}>Donate</NavLink>
+              <NavLink to="/governance" className={({ isActive }) => isActive ? 'link active' : 'link'}>Governance</NavLink>
+              <NavLink to="/claim-tokens" className={({ isActive }) => isActive ? 'link active' : 'link'}>Claim Tokens</NavLink>
               <NavLink to="/gallery" className={({ isActive }) => isActive ? 'link active' : 'link'}>Gallery</NavLink>
               <NavLink to="/donations" className={({ isActive }) => isActive ? 'link active' : 'link'}>Donations</NavLink>
               <NavLink to="/account" className={({ isActive }) => isActive ? 'link active' : 'link'}>Account</NavLink>
@@ -92,6 +98,8 @@ function Layout() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/donate" element={<Donate />} />
+          <Route path="/governance" element={<Governance />} />
+          <Route path="/claim-tokens" element={<ClaimTokens />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/donations" element={<Donations />} />
           <Route path="/account" element={<Account />} />
