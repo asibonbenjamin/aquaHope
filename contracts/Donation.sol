@@ -15,12 +15,16 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
     address public governance;
     address public badgeNFT;
     
+    // ENS Registry for name resolution
+    address public ensRegistry;
+    
     // Donation structure
     struct Donation {
         address donor;
         uint256 amount;
         string name;
         string email;
+        string ensName; // Add ENS name field
         uint256 timestamp;
         string message;
         string location;
@@ -33,6 +37,7 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
     mapping(address => uint256) public donorCount;
     mapping(address => uint256) public donorTotalAmount;
     mapping(address => string) public donorEmails;
+    mapping(address => string) public donorEnsNames; // Track ENS names
     mapping(uint256 => bool) public usedTokenCodes;
     Donation[] public donations;
     
@@ -42,6 +47,7 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
         uint256 amount,
         string name,
         string email,
+        string ensName,
         string message,
         string location,
         uint256 timestamp,
@@ -51,7 +57,7 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
     event TokensMinted(address indexed donor, uint256 amount);
     event BadgeMinted(address indexed donor, uint256 tokenId);
     event FundsDepositedToYield(address indexed donor, uint256 amount);
-    
+    event EnsNameUpdated(address indexed donor, string ensName);
     
     constructor() {
         // Owner is set by Ownable constructor
@@ -79,12 +85,16 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
         require(!usedTokenCodes[tokenCode], "Token code collision");
         usedTokenCodes[tokenCode] = true;
         
+        // Try to resolve ENS name
+        string memory ensName = _resolveEnsName(msg.sender);
+        
         // Create donation record
         donations.push(Donation({
             donor: msg.sender,
             amount: msg.value,
             name: _name,
             email: _email,
+            ensName: ensName,
             timestamp: block.timestamp,
             message: _message,
             location: _location,
@@ -104,6 +114,12 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
         donorTotalAmount[msg.sender] += msg.value;
         donorEmails[msg.sender] = _email;
         
+        // Store ENS name if found
+        if (bytes(ensName).length > 0) {
+            donorEnsNames[msg.sender] = ensName;
+            emit EnsNameUpdated(msg.sender, ensName);
+        }
+        
         // Deposit funds to yield pool
         if (yieldPool != address(0)) {
             (bool success, ) = yieldPool.call{value: msg.value}(
@@ -119,6 +135,7 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
             msg.value,
             _name,
             _email,
+            ensName,
             _message,
             _location,
             block.timestamp,
@@ -181,9 +198,26 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
         return uint256(keccak256(abi.encodePacked(
             donor,
             block.timestamp,
-            block.difficulty,
+            block.prevrandao,
             donations.length
         )));
+    }
+    
+    /**
+     * @dev Resolve ENS name for an address
+     * @param addr The address to resolve
+     * @return The ENS name or empty string if not found
+     */
+    function _resolveEnsName(address addr) internal view returns (string memory) {
+        if (ensRegistry == address(0)) {
+            return "";
+        }
+        
+        try IENSResolver(ensRegistry).name(addr) returns (string memory ensName) {
+            return ensName;
+        } catch {
+            return "";
+        }
     }
     
     /**
@@ -202,6 +236,14 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
     }
     
     /**
+     * @dev Set ENS registry address
+     * @param _ensRegistry The ENS registry contract address
+     */
+    function setEnsRegistry(address _ensRegistry) external onlyOwner {
+        ensRegistry = _ensRegistry;
+    }
+    
+    /**
      * @dev Get donation count
      */
     function getDonationCount() external view returns (uint256) {
@@ -216,6 +258,7 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
         uint256 amount,
         string memory name,
         string memory email,
+        string memory ensName,
         uint256 timestamp,
         string memory message,
         string memory location,
@@ -230,6 +273,7 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
             donation.amount,
             donation.name,
             donation.email,
+            donation.ensName,
             donation.timestamp,
             donation.message,
             donation.location,
@@ -247,6 +291,7 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
         uint256 amount,
         string memory name,
         string memory email,
+        string memory ensName,
         uint256 timestamp,
         string memory message,
         string memory location,
@@ -261,6 +306,7 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
                     donation.amount,
                     donation.name,
                     donation.email,
+                    donation.ensName,
                     donation.timestamp,
                     donation.message,
                     donation.location,
@@ -313,6 +359,13 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
     }
     
     /**
+     * @dev Get donor's ENS name
+     */
+    function getDonorEnsName(address donor) external view returns (string memory) {
+        return donorEnsNames[donor];
+    }
+    
+    /**
      * @dev Check if token code is used
      */
     function isTokenCodeUsed(uint256 tokenCode) external view returns (bool) {
@@ -337,3 +390,9 @@ contract AquaHopeDonation is Ownable, ReentrancyGuard {
     }
 }
 
+/**
+ * @dev Interface for ENS resolution
+ */
+interface IENSResolver {
+    function name(address addr) external view returns (string memory);
+}

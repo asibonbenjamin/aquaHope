@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\ASIBON BENJAMIN\\Documents\\cursor\\frontend\\aquaHope\\contracts\\Donation.sol": {
-      "lastModificationDate": 1757132872378,
-      "contentHash": "14abe0bb6967280559b3d785bba4626d",
+      "lastModificationDate": 1757164129637,
+      "contentHash": "a90162c07c8aa01ea230cd44ef7c016c",
       "sourceName": "contracts/Donation.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -37,12 +37,13 @@
         "^0.8.19"
       ],
       "artifacts": [
-        "AquaHopeDonation"
+        "AquaHopeDonation",
+        "IENSResolver"
       ]
     },
     "C:\\Users\\ASIBON BENJAMIN\\Documents\\cursor\\frontend\\aquaHope\\contracts\\AquaHopeGovernance.sol": {
-      "lastModificationDate": 1757126832672,
-      "contentHash": "bc42268c6ec66165fe9bb26ebe5c0775",
+      "lastModificationDate": 1757161979400,
+      "contentHash": "c67146730ced92fa7461c884ceffa46f",
       "sourceName": "contracts/AquaHopeGovernance.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -912,8 +913,8 @@
       ]
     },
     "C:\\Users\\ASIBON BENJAMIN\\Documents\\cursor\\frontend\\aquaHope\\contracts\\DeFiYieldPool.sol": {
-      "lastModificationDate": 1757134583289,
-      "contentHash": "ff2a127102287b1036e71ff3ae706a9c",
+      "lastModificationDate": 1757161979288,
+      "contentHash": "b05fa402fd4c639e1f6488209acbabc5",
       "sourceName": "contracts/DeFiYieldPool.sol",
       "solcConfig": {
         "version": "0.8.20",

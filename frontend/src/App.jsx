@@ -9,6 +9,8 @@ import Account from './pages/Account.jsx'
 import Governance from './pages/Governance.jsx'
 import ClaimTokens from './pages/ClaimTokens.jsx'
 import { WalletProvider, useWallet } from './wallet/WalletContext.jsx'
+import ENSAddress from './components/ENSAddress.jsx'
+import ENSConnectionModal from './components/ENSConnectionModal.jsx'
 
 function UtilityBar() {
   return (
@@ -25,7 +27,7 @@ function UtilityBar() {
 }
 
 function NavBar() {
-  const { account, connectWallet, isConnecting } = useWallet()
+  const { account, connectWallet, disconnectWallet, isConnecting, ensName, ensLoading } = useWallet()
   const topbarRef = useRef(null)
   const [showFloating, setShowFloating] = useState(false)
 
@@ -44,13 +46,27 @@ function NavBar() {
       <div className="stats-bar">
         <div className="brand">AquaHope</div>
         <div className="stats-inline">
-          <div><strong>20000</strong><div className="muted">Plants Protected</div></div>
-          <div><strong>3M Ton</strong><div className="muted">Water Conserved</div></div>
-          <div><strong>28K Sqmi.</strong><div className="muted">Ocean Protected</div></div>
         </div>
         <div className="wallet">
           {account ? (
-            <span title={account}>Connected: {account.slice(0, 6)}…{account.slice(-4)}</span>
+            <div className="wallet-info">
+              <span className="connection-status">Connected:</span>
+              <ENSAddress 
+                address={account}
+                showAvatar={true}
+                copyable={true}
+                className="wallet-address"
+                title={`${ensName || 'Address'}: ${account}`}
+              />
+              {ensLoading && <span className="ens-loading">⏳</span>}
+              <button 
+                onClick={disconnectWallet} 
+                className="logout-button"
+                title="Disconnect Wallet"
+              >
+                LOGOUT
+              </button>
+            </div>
           ) : (
             <button onClick={connectWallet} disabled={isConnecting}>
               {isConnecting ? 'Connecting…' : 'Connect Wallet'}
@@ -91,6 +107,8 @@ function NavBar() {
 }
 
 function Layout() {
+  const { showEnsModal, pendingAccount, completeWalletConnection } = useWallet()
+  
   return (
     <div className="layout">
       <NavBar />
@@ -105,6 +123,17 @@ function Layout() {
           <Route path="/account" element={<Account />} />
         </Routes>
       </main>
+      
+      {/* ENS Connection Modal */}
+      <ENSConnectionModal
+        isOpen={showEnsModal}
+        onClose={() => {
+          // Reset connection state if user closes modal
+          window.location.reload()
+        }}
+        onProceed={() => completeWalletConnection(pendingAccount)}
+        account={pendingAccount}
+      />
       <footer className="footer">
         <div className="footer-grid">
           <div>

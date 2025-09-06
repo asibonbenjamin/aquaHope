@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useWallet } from '../wallet/WalletContext.jsx'
+import ENSAddress from '../components/ENSAddress.jsx'
+import { useMultipleENS } from '../hooks/useENS.js'
 
 export default function Governance() {
   const { account, contract } = useWallet()
@@ -13,6 +15,10 @@ export default function Governance() {
     location: '',
     budget: ''
   })
+
+  // Get all proposer addresses for ENS resolution
+  const proposerAddresses = [...new Set(proposals.map(p => p.proposer))]
+  const { ensNames, loading: ensLoading } = useMultipleENS(proposerAddresses)
 
   useEffect(() => {
     if (account) {
@@ -306,7 +312,13 @@ export default function Governance() {
                   <strong>Budget:</strong> {proposal.budget} ETH
                 </div>
                 <div>
-                  <strong>Proposer:</strong> {proposal.proposer}
+                  <strong>Proposer:</strong> 
+                  <ENSAddress 
+                    address={proposal.proposer}
+                    showAvatar={true}
+                    copyable={true}
+                    className="proposer-address"
+                  />
                 </div>
                 <div>
                   <strong>Ends:</strong> {formatTime(proposal.endTime)}
@@ -353,4 +365,3 @@ export default function Governance() {
     </div>
   )
 }
-

@@ -8,36 +8,36 @@ async function main() {
   console.log("\n1️⃣ Deploying AquaHope Impact Token (AIT)...");
   const AquaHopeImpactToken = await hre.ethers.getContractFactory("AquaHopeImpactToken");
   const aitToken = await AquaHopeImpactToken.deploy();
-  await aitToken.deployed();
-  const aitTokenAddress = aitToken.address;
+  await aitToken.waitForDeployment();
+  const aitTokenAddress = await aitToken.getAddress();
   console.log("✅ AIT Token deployed to:", aitTokenAddress);
 
   console.log("\n2️⃣ Deploying DeFi Yield Pool...");
   const DeFiYieldPool = await hre.ethers.getContractFactory("DeFiYieldPool");
   const yieldPool = await DeFiYieldPool.deploy();
-  await yieldPool.deployed();
-  const yieldPoolAddress = yieldPool.address;
+  await yieldPool.waitForDeployment();
+  const yieldPoolAddress = await yieldPool.getAddress();
   console.log("✅ Yield Pool deployed to:", yieldPoolAddress);
 
   console.log("\n3️⃣ Deploying Governance Contract...");
   const AquaHopeGovernance = await hre.ethers.getContractFactory("AquaHopeGovernance");
   const governance = await AquaHopeGovernance.deploy(aitTokenAddress);
-  await governance.deployed();
-  const governanceAddress = governance.address;
+  await governance.waitForDeployment();
+  const governanceAddress = await governance.getAddress();
   console.log("✅ Governance deployed to:", governanceAddress);
 
   console.log("\n4️⃣ Deploying Donor Badge NFT...");
   const DonorBadgeNFT = await hre.ethers.getContractFactory("DonorBadgeNFT");
   const badgeNFT = await DonorBadgeNFT.deploy();
-  await badgeNFT.deployed();
-  const badgeNFTAddress = badgeNFT.address;
+  await badgeNFT.waitForDeployment();
+  const badgeNFTAddress = await badgeNFT.getAddress();
   console.log("✅ Badge NFT deployed to:", badgeNFTAddress);
 
   console.log("\n5️⃣ Deploying Main Donation Contract...");
   const AquaHopeDonation = await hre.ethers.getContractFactory("AquaHopeDonation");
   const donation = await AquaHopeDonation.deploy();
-  await donation.deployed();
-  const donationAddress = donation.address;
+  await donation.waitForDeployment();
+  const donationAddress = await donation.getAddress();
   console.log("✅ Donation Contract deployed to:", donationAddress);
 
   // Set integration contracts

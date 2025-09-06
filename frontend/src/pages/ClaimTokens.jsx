@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useWallet } from '../wallet/WalletContext.jsx'
+import ENSAddress from '../components/ENSAddress.jsx'
 
 export default function ClaimTokens() {
-  const { account, connectWallet } = useWallet()
+  const { account, connectWallet, ensName, ensLoading } = useWallet()
   const [tokenCode, setTokenCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [claimResult, setClaimResult] = useState(null)
+  const [donationDetails, setDonationDetails] = useState(null)
 
   const claimTokens = async () => {
     if (!account) {
@@ -30,57 +32,55 @@ export default function ClaimTokens() {
         body: JSON.stringify({ tokenCode: tokenCode.trim() })
       })
 
-      const result = await response.json()
+      const data = await response.json()
       
-      if (result.success && result.donation) {
-        const donation = result.donation
-        
-        // Check if tokens are already minted
-        if (donation.tokensMinted) {
-          setClaimResult({
-            success: true,
-            message: 'Tokens already claimed!',
-            donation: donation
-          })
-        } else {
-          // Mint tokens and badge
-          const mintResponse = await fetch('/api/blockchain/mint-tokens-badge', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              donationIndex: 0 // This would need to be the actual donation index
-            })
-          })
-
-          const mintResult = await mintResponse.json()
-          
-          if (mintResult.success) {
-            setClaimResult({
-              success: true,
-              message: 'Tokens and badge claimed successfully!',
-              donation: donation,
-              txHash: mintResult.txHash
-            })
-          } else {
-            setClaimResult({
-              success: false,
-              message: `Failed to claim tokens: ${mintResult.error}`
-            })
-          }
-        }
-      } else {
-        setClaimResult({
-          success: false,
-          message: 'Invalid token code or donation not found'
-        })
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to find donation')
       }
+
+      setDonationDetails(data.donation)
+
+      // Check if tokens are already minted
+      if (data.donation.tokensMinted) {
+        setClaimResult({
+          success: true,
+          message: 'Tokens and badge have already been claimed for this donation.',
+          alreadyClaimed: true
+        })
+        return
+      }
+
+      // Mint tokens and badge
+      const mintResponse = await fetch('/api/blockchain/mint-tokens-badge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          tokenCode: tokenCode.trim(),
+          donorAddress: account
+        })
+      })
+
+      const mintData = await mintResponse.json()
+      
+      if (mintData.success) {
+        setClaimResult({
+          success: true,
+          message: 'Tokens and badge successfully claimed!',
+          txHash: mintData.txHash,
+          tokens: mintData.tokens,
+          badgeId: mintData.badgeId
+        })
+      } else {
+        throw new Error(mintData.error || 'Failed to mint tokens and badge')
+      }
+      
     } catch (error) {
-      console.error('Failed to claim tokens:', error)
+      console.error('Claim failed:', error)
       setClaimResult({
         success: false,
-        message: 'Failed to claim tokens. Please try again.'
+        message: error.message
       })
     } finally {
       setLoading(false)
@@ -90,135 +90,198 @@ export default function ClaimTokens() {
   const resetForm = () => {
     setTokenCode('')
     setClaimResult(null)
+    setDonationDetails(null)
   }
 
   return (
     <div>
       <div className="page-hero">
-        <div className="pill">🪙 Claim Your Tokens</div>
-        <h2 style={{ margin: '6px 0 10px' }}>Claim Your Impact Tokens & Badge</h2>
-        <p className="muted">Enter the token code you received via email to claim your AIT tokens and donor badge NFT.</p>
+        <div className="pill">🎁 Claim Tokens</div>
+        <h2 style={{ margin: '6px 0 10px' }}>Claim Your AIT Tokens & NFT Badge</h2>
+        <p className="muted">Enter your token code from the donation confirmation email to claim your rewards.</p>
       </div>
 
-      <div className="donate-panel">
-        {!claimResult ? (
-          <>
-            <h3>Enter Your Token Code</h3>
-            <p className="muted">Check your email for the token code sent after your donation.</p>
+      {!account ? (
+        <div className="card">
+          <h3>Connect Your Wallet</h3>
+          <p>Please connect your wallet to claim your tokens and badge.</p>
+          <button onClick={connectWallet}>Connect Wallet</button>
+        </div>
+      ) : (
+        <div>
+          {/* Connected Wallet Info */}
+          <div className="card" style={{ marginBottom: '20px' }}>
+            <h3>Connected Wallet</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <ENSAddress 
+                address={account}
+                showAvatar={true}
+                copyable={true}
+                className="wallet-address"
+              />
+              {ensLoading && <span className="ens-loading">⏳ Resolving ENS...</span>}
+            </div>
+            {ensName && (
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                ENS Name: {ensName}
+              </div>
+            )}
+          </div>
+
+          {/* Token Code Input */}
+          <div className="card" style={{ marginBottom: '20px' }}>
+            <h3>Enter Token Code</h3>
+            <p style={{ color: '#666', marginBottom: '15px' }}>
+              Enter the token code you received in your donation confirmation email.
+            </p>
             
-            <label>Token Code</label>
-            <input 
-              type="text"
-              value={tokenCode}
-              onChange={e => setTokenCode(e.target.value.toUpperCase())}
-              placeholder="Enter your 8-character token code"
-              maxLength="8"
-              style={{ 
-                fontFamily: 'monospace', 
-                letterSpacing: '2px',
-                textAlign: 'center',
-                fontSize: '18px'
-              }}
-            />
-            
+            <div style={{ marginBottom: '15px' }}>
+              <label>Token Code</label>
+              <input
+                type="text"
+                value={tokenCode}
+                onChange={e => setTokenCode(e.target.value)}
+                placeholder="Enter your token code here..."
+                style={{ 
+                  fontFamily: 'monospace', 
+                  fontSize: '16px',
+                  padding: '12px',
+                  border: '2px solid #e9ecef',
+                  borderRadius: '6px',
+                  width: '100%'
+                }}
+              />
+            </div>
+
             <button 
               onClick={claimTokens} 
               disabled={loading || !tokenCode.trim()}
+              style={{ width: '100%' }}
             >
-              {loading ? 'Claiming...' : account ? 'Claim Tokens & Badge' : 'Connect Wallet & Claim'}
+              {loading ? 'Claiming...' : 'Claim Tokens & Badge'}
             </button>
+          </div>
+
+          {/* Donation Details */}
+          {donationDetails && (
+            <div className="card" style={{ marginBottom: '20px' }}>
+              <h3>Donation Details</h3>
+              <div style={{ display: 'grid', gap: '10px' }}>
+                <div><strong>Donor:</strong> {donationDetails.name}</div>
+                <div><strong>Email:</strong> {donationDetails.email}</div>
+                <div><strong>Address:</strong> 
+                  <ENSAddress 
+                    address={donationDetails.donor}
+                    showAvatar={true}
+                    copyable={true}
+                    className="donor-address"
+                  />
+                </div>
+                <div><strong>Amount:</strong> {donationDetails.amount} ETH</div>
+                <div><strong>Location:</strong> {donationDetails.location}</div>
+                <div><strong>Date:</strong> {new Date(donationDetails.timestamp * 1000).toLocaleDateString()}</div>
+                {donationDetails.message && (
+                  <div><strong>Message:</strong> "{donationDetails.message}"</div>
+                )}
+                <div><strong>Status:</strong> 
+                  <span style={{ 
+                    color: donationDetails.tokensMinted ? '#28a745' : '#ffc107',
+                    fontWeight: 'bold'
+                  }}>
+                    {donationDetails.tokensMinted ? '✅ Claimed' : '⏳ Pending'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Claim Result */}
+          {claimResult && (
+            <div className="card" style={{ 
+              background: claimResult.success ? '#d4edda' : '#f8d7da',
+              borderColor: claimResult.success ? '#c3e6cb' : '#f5c6cb'
+            }}>
+              <h3 style={{ color: claimResult.success ? '#155724' : '#721c24' }}>
+                {claimResult.success ? '✅ Success!' : '❌ Error'}
+              </h3>
+              
+              <p style={{ color: claimResult.success ? '#155724' : '#721c24' }}>
+                {claimResult.message}
+              </p>
+
+              {claimResult.success && !claimResult.alreadyClaimed && (
+                <div style={{ 
+                  background: 'rgba(255, 255, 255, 0.5)', 
+                  padding: '15px', 
+                  borderRadius: '6px',
+                  marginTop: '15px'
+                }}>
+                  <h4 style={{ margin: '0 0 10px 0' }}>What You Received:</h4>
+                  <ul style={{ margin: 0, paddingLeft: '20px' }}>
+                    <li><strong>AIT Tokens:</strong> {claimResult.tokens || 'Calculating...'} tokens</li>
+                    <li><strong>NFT Badge:</strong> Badge ID #{claimResult.badgeId || 'Pending...'}</li>
+                    <li><strong>Voting Power:</strong> You can now vote on governance proposals</li>
+                    <li><strong>DeFi Yield:</strong> Your tokens will earn yield automatically</li>
+                  </ul>
+                </div>
+              )}
+
+              {claimResult.txHash && (
+                <div style={{ 
+                  background: 'rgba(255, 255, 255, 0.5)', 
+                  padding: '10px', 
+                  borderRadius: '4px',
+                  marginTop: '10px',
+                  fontFamily: 'monospace',
+                  fontSize: '12px'
+                }}>
+                  <strong>Transaction Hash:</strong> {claimResult.txHash}
+                </div>
+              )}
+
+              <div style={{ marginTop: '15px' }}>
+                <button onClick={resetForm}>
+                  {claimResult.success ? 'Claim Another' : 'Try Again'}
+                </button>
+                {claimResult.success && (
+                  <button 
+                    onClick={() => window.location.href = '/governance'}
+                    style={{ marginLeft: '10px' }}
+                  >
+                    View Governance
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Instructions */}
+          <div className="card">
+            <h3>How to Claim</h3>
+            <ol style={{ paddingLeft: '20px' }}>
+              <li>Make a donation on the <a href="/donate">Donate page</a></li>
+              <li>Check your email for the confirmation with your token code</li>
+              <li>Connect your wallet to this page</li>
+              <li>Enter your token code in the form above</li>
+              <li>Click "Claim Tokens & Badge" to receive your rewards</li>
+            </ol>
             
             <div style={{ 
               background: '#e8f4fd', 
               padding: '15px', 
-              borderRadius: '8px', 
-              margin: '20px 0',
-              borderLeft: '4px solid #667eea'
+              borderRadius: '8px',
+              borderLeft: '4px solid #667eea',
+              marginTop: '15px'
             }}>
-              <h4 style={{ margin: '0 0 10px 0', color: '#667eea' }}>What You'll Receive:</h4>
-              <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                <li><strong>AquaHope Impact Tokens (AIT)</strong> - Your voting power</li>
-                <li><strong>Donor Badge NFT</strong> - Unique digital badge</li>
-                <li><strong>Governance Rights</strong> - Vote on future projects</li>
-                <li><strong>Impact Tracking</strong> - See your contribution's impact</li>
-              </ul>
+              <h4 style={{ margin: '0 0 10px 0', color: '#667eea' }}>💡 Pro Tip</h4>
+              <p style={{ margin: 0, fontSize: '14px' }}>
+                Your token code is unique to your donation and wallet address. 
+                Make sure you're connected with the same wallet you used for the donation.
+              </p>
             </div>
-          </>
-        ) : (
-          <div style={{ textAlign: 'center' }}>
-            {claimResult.success ? (
-              <>
-                <div style={{ 
-                  background: '#d4edda', 
-                  border: '1px solid #c3e6cb', 
-                  color: '#155724',
-                  padding: '20px', 
-                  borderRadius: '8px', 
-                  marginBottom: '20px'
-                }}>
-                  <h3 style={{ margin: '0 0 10px 0', color: '#155724' }}>🎉 Success!</h3>
-                  <p style={{ margin: 0 }}>{claimResult.message}</p>
-                  {claimResult.txHash && (
-                    <p style={{ margin: '10px 0 0 0', fontSize: '14px' }}>
-                      Transaction: <code>{claimResult.txHash}</code>
-                    </p>
-                  )}
-                </div>
-                
-                {claimResult.donation && (
-                  <div style={{ 
-                    background: '#f8f9fa', 
-                    padding: '20px', 
-                    borderRadius: '8px', 
-                    marginBottom: '20px',
-                    textAlign: 'left'
-                  }}>
-                    <h4>Your Donation Details:</h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                      <div><strong>Amount:</strong> {claimResult.donation.amount} ETH</div>
-                      <div><strong>Location:</strong> {claimResult.donation.location}</div>
-                      <div><strong>Date:</strong> {new Date(claimResult.donation.timestamp * 1000).toLocaleDateString()}</div>
-                      <div><strong>Tokens Earned:</strong> {Math.floor(parseFloat(claimResult.donation.amount) * 1000)} AIT</div>
-                    </div>
-                  </div>
-                )}
-                
-                <div style={{ 
-                  background: '#e8f4fd', 
-                  padding: '15px', 
-                  borderRadius: '8px', 
-                  marginBottom: '20px',
-                  borderLeft: '4px solid #667eea'
-                }}>
-                  <h4 style={{ margin: '0 0 10px 0', color: '#667eea' }}>Next Steps:</h4>
-                  <ul style={{ margin: 0, paddingLeft: '20px', textAlign: 'left' }}>
-                    <li>Check your wallet for the AIT tokens</li>
-                    <li>View your donor badge NFT</li>
-                    <li>Visit the Governance page to vote on proposals</li>
-                    <li>Track your impact on the platform</li>
-                  </ul>
-                </div>
-              </>
-            ) : (
-              <div style={{ 
-                background: '#f8d7da', 
-                border: '1px solid #f5c6cb', 
-                color: '#721c24',
-                padding: '20px', 
-                borderRadius: '8px', 
-                marginBottom: '20px'
-              }}>
-                <h3 style={{ margin: '0 0 10px 0', color: '#721c24' }}>❌ Claim Failed</h3>
-                <p style={{ margin: 0 }}>{claimResult.message}</p>
-              </div>
-            )}
-            
-            <button onClick={resetForm}>
-              {claimResult.success ? 'Claim Another Token' : 'Try Again'}
-            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -2,7 +2,7 @@ const { ethers } = require("hardhat");
 const fs = require('fs');
 
 /**
- * AquaHope DeFi/ReFi Platform - Complete Request Script
+ * AquaHope DeFi/ReFi Platform - Complete Request Script with ENS Support
  * This script provides all necessary functions for the platform to work fully
  */
 
@@ -11,6 +11,7 @@ class AquaHopeRequest {
     this.contracts = {};
     this.deployer = null;
     this.network = null;
+    this.ensRegistry = null;
   }
 
   /**
@@ -18,7 +19,7 @@ class AquaHopeRequest {
    */
   async initialize() {
     try {
-      console.log("🚀 Initializing AquaHope Request System...");
+      console.log("🚀 Initializing AquaHope Request System with ENS Support...");
       
       // Get deployer account
       [this.deployer] = await ethers.getSigners();
@@ -30,10 +31,39 @@ class AquaHopeRequest {
       // Load deployed contracts
       await this.loadDeployedContracts();
       
+      // Initialize ENS registry
+      await this.initializeENS();
+      
       console.log("✅ Request system initialized successfully!");
     } catch (error) {
       console.error("❌ Failed to initialize request system:", error);
       throw error;
+    }
+  }
+
+  /**
+   * Initialize ENS registry
+   */
+  async initializeENS() {
+    try {
+      // ENS Registry address (same on all networks)
+      const ensRegistryAddress = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e';
+      
+      // ENS Registry ABI
+      const ensRegistryABI = [
+        'function resolver(bytes32 node) external view returns (address)',
+        'function owner(bytes32 node) external view returns (address)'
+      ];
+      
+      this.ensRegistry = new ethers.Contract(ensRegistryAddress, ensRegistryABI, ethers.provider);
+      
+      // Set ENS registry in donation contract
+      if (this.contracts.donation) {
+        await this.contracts.donation.setEnsRegistry(ensRegistryAddress);
+        console.log("✅ ENS registry configured");
+      }
+    } catch (error) {
+      console.warn("⚠️ ENS registry not available:", error.message);
     }
   }
 
@@ -61,6 +91,104 @@ class AquaHopeRequest {
     } catch (error) {
       console.error("❌ Failed to load contracts:", error);
       throw error;
+    }
+  }
+
+  /**
+   * ENS FUNCTIONS
+   */
+
+  /**
+   * Resolve ENS name for an address
+   */
+  async resolveEnsName(address) {
+    try {
+      if (!this.ensRegistry) {
+        return null;
+      }
+
+      // Convert address to reverse lookup format
+      const reverseName = `${address.slice(2).toLowerCase()}.addr.reverse`;
+      const nameHash = ethers.namehash(reverseName);
+      
+      // Get resolver for reverse lookup
+      const resolverAddress = await this.ensRegistry.resolver(nameHash);
+      
+      if (resolverAddress === ethers.ZeroAddress) {
+        return null;
+      }
+
+      // Get the actual name from resolver
+      const resolver = new ethers.Contract(resolverAddress, [
+        'function name(bytes32 node) external view returns (string)'
+      ], ethers.provider);
+      
+      const ensName = await resolver.name(nameHash);
+      
+      if (ensName && ensName.length > 0) {
+        return ensName;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error(`Failed to resolve ENS name for ${address}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Resolve address for an ENS name
+   */
+  async resolveAddress(ensName) {
+    try {
+      if (!this.ensRegistry) {
+        return null;
+      }
+
+      // Normalize ENS name
+      const normalizedName = ensName.toLowerCase().endsWith('.eth') ? ensName : `${ensName}.eth`;
+      const nameHash = ethers.namehash(normalizedName);
+      
+      // Get resolver for the name
+      const resolverAddress = await this.ensRegistry.resolver(nameHash);
+      
+      if (resolverAddress === ethers.ZeroAddress) {
+        return null;
+      }
+
+      // Get the address from resolver
+      const resolver = new ethers.Contract(resolverAddress, [
+        'function addr(bytes32 node) external view returns (address)'
+      ], ethers.provider);
+      
+      const address = await resolver.addr(nameHash);
+      
+      if (address && address !== ethers.ZeroAddress) {
+        return address;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error(`Failed to resolve address for ${ensName}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Format address with ENS name
+   */
+  async formatAddress(address, truncateLength = 6) {
+    try {
+      const ensName = await this.resolveEnsName(address);
+      
+      if (ensName) {
+        return ensName;
+      }
+      
+      return `${address.slice(0, truncateLength)}...${address.slice(-4)}`;
+    } catch (error) {
+      console.error('Failed to format address:', error);
+      return `${address.slice(0, truncateLength)}...${address.slice(-4)}`;
     }
   }
 
@@ -115,12 +243,13 @@ class AquaHopeRequest {
           amount: ethers.formatEther(donation[1]),
           name: donation[2],
           email: donation[3],
-          timestamp: donation[4],
-          message: donation[5],
-          location: donation[6],
-          tokensMinted: donation[7],
-          badgeMinted: donation[8],
-          tokenCode: donation[9]
+          ensName: donation[4],
+          timestamp: donation[5],
+          message: donation[6],
+          location: donation[7],
+          tokensMinted: donation[8],
+          badgeMinted: donation[9],
+          tokenCode: donation[10]
         }
       };
     } catch (error) {
@@ -142,11 +271,12 @@ class AquaHopeRequest {
           amount: ethers.formatEther(donation[1]),
           name: donation[2],
           email: donation[3],
-          timestamp: donation[4],
-          message: donation[5],
-          location: donation[6],
-          tokensMinted: donation[7],
-          badgeMinted: donation[8]
+          ensName: donation[4],
+          timestamp: donation[5],
+          message: donation[6],
+          location: donation[7],
+          tokensMinted: donation[8],
+          badgeMinted: donation[9]
         }
       };
     } catch (error) {
@@ -273,7 +403,7 @@ class AquaHopeRequest {
       console.log(`✅ Vote cast! TX: ${tx.hash}`);
       return { success: true, txHash: tx.hash };
     } catch (error) {
-      console.error("❌ Failed to vote:", error);
+      console.error("❌ Failed to vote on proposal:", error);
       return { success: false, error: error.message };
     }
   }
@@ -443,7 +573,7 @@ class AquaHopeRequest {
   }
 
   /**
-   * Get recent donations
+   * Get recent donations with ENS names
    */
   async getRecentDonations(count = 10) {
     try {
@@ -455,6 +585,7 @@ class AquaHopeRequest {
           amount: ethers.formatEther(donation.amount),
           name: donation.name,
           email: donation.email,
+          ensName: donation.ensName,
           timestamp: donation.timestamp,
           message: donation.message,
           location: donation.location,
@@ -514,11 +645,11 @@ class AquaHopeRequest {
    */
 
   /**
-   * Run a complete test flow
+   * Run a complete test flow with ENS
    */
   async runTestFlow() {
     try {
-      console.log("🧪 Running complete test flow...");
+      console.log("🧪 Running complete test flow with ENS support...");
       
       // 1. Make a test donation
       const donation = await this.makeDonation(
@@ -543,7 +674,11 @@ class AquaHopeRequest {
       // 3. Check token balance
       const balance = await this.getDonorTokenBalance(this.deployer.address);
       
-      // 4. Create a test proposal
+      // 4. Resolve ENS name for deployer
+      const ensName = await this.resolveEnsName(this.deployer.address);
+      console.log(`🌐 ENS Name for ${this.deployer.address}: ${ensName || 'Not found'}`);
+      
+      // 5. Create a test proposal
       const proposal = await this.createProposal(
         "Test Borehole in Kenya",
         "Install a new borehole in rural Kenya",
@@ -555,20 +690,31 @@ class AquaHopeRequest {
         throw new Error("Proposal creation failed");
       }
       
-      // 5. Vote on the proposal
+      // 6. Vote on the proposal
       const vote = await this.voteOnProposal(proposal.proposalId, true);
       
-      // 6. Get platform stats
+      // 7. Get platform stats
       const stats = await this.getPlatformStats();
+      
+      // 8. Get recent donations with ENS names
+      const recentDonations = await this.getRecentDonations(5);
       
       console.log("✅ Test flow completed successfully!");
       console.log("📊 Results:");
       console.log(`   - Donation: ${donation.txHash}`);
       console.log(`   - Tokens minted: ${mintResult.txHash}`);
       console.log(`   - Token balance: ${balance.balance} AIT`);
+      console.log(`   - ENS name: ${ensName || 'Not found'}`);
       console.log(`   - Proposal created: ${proposal.txHash}`);
       console.log(`   - Vote cast: ${vote.txHash}`);
       console.log(`   - Total donations: ${stats.stats.totalDonations} ETH`);
+      
+      if (recentDonations.success) {
+        console.log("📋 Recent donations with ENS names:");
+        recentDonations.donations.forEach((donation, index) => {
+          console.log(`   ${index + 1}. ${donation.name} (${donation.ensName || 'No ENS'}) - ${donation.amount} ETH`);
+        });
+      }
       
       return {
         success: true,
@@ -576,9 +722,11 @@ class AquaHopeRequest {
           donation,
           mintResult,
           balance,
+          ensName,
           proposal,
           vote,
-          stats
+          stats,
+          recentDonations
         }
       };
     } catch (error) {

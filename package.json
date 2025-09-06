@@ -12,6 +12,8 @@
     "test": "hardhat test"
   },
   "dependencies": {
+    "@ensdomains/ens-contracts": "^1.5.2",
+    "@ensdomains/ensjs": "^4.0.2",
     "@openzeppelin/contracts": "^4.9.6",
     "dotenv": "^16.6.1",
     "react-router-dom": "^7.8.2"

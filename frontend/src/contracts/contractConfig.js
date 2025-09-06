@@ -1,116 +1,26 @@
-// Contract configuration
+// Contract configuration - Auto-generated
 export const CONTRACT_CONFIG = {
-  // Update this address after deploying the contract
-  CONTRACT_ADDRESS: "0x0000000000000000000000000000000000000000", // Replace with actual deployed address
+  // Main donation contract
+  DONATION_ADDRESS: "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
   
-  // Contract ABI - this will be generated after compilation
-  CONTRACT_ABI: [
-    {
-      "inputs": [],
-      "stateVariable": true,
-      "name": "owner",
-      "outputs": [{"type": "address", "name": ""}],
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "stateVariable": true,
-      "name": "totalDonations",
-      "outputs": [{"type": "uint256", "name": ""}],
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "stateVariable": true,
-      "name": "totalDonors",
-      "outputs": [{"type": "uint256", "name": ""}],
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {"type": "string", "name": "_name"},
-        {"type": "string", "name": "_message"}
-      ],
-      "name": "donate",
-      "outputs": [],
-      "type": "function",
-      "stateMutability": "payable"
-    },
-    {
-      "inputs": [],
-      "name": "getDonationCount",
-      "outputs": [{"type": "uint256"}],
-      "type": "function"
-    },
-    {
-      "inputs": [{"type": "uint256", "name": "_index"}],
-      "name": "getDonation",
-      "outputs": [
-        {"type": "address", "name": "donor"},
-        {"type": "uint256", "name": "amount"},
-        {"type": "string", "name": "name"},
-        {"type": "uint256", "name": "timestamp"},
-        {"type": "string", "name": "message"}
-      ],
-      "type": "function"
-    },
-    {
-      "inputs": [{"type": "uint256", "name": "_count"}],
-      "name": "getRecentDonations",
-      "outputs": [
-        {
-          "type": "tuple[]",
-          "name": "",
-          "components": [
-            {"type": "address", "name": "donor"},
-            {"type": "uint256", "name": "amount"},
-            {"type": "string", "name": "name"},
-            {"type": "uint256", "name": "timestamp"},
-            {"type": "string", "name": "message"}
-          ]
-        }
-      ],
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getContractBalance",
-      "outputs": [{"type": "uint256"}],
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "withdrawFunds",
-      "outputs": [],
-      "type": "function"
-    },
-    {
-      "inputs": [{"type": "address", "name": "_newOwner"}],
-      "name": "updateOwner",
-      "outputs": [],
-      "type": "function"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {"indexed": true, "type": "address", "name": "donor"},
-        {"indexed": false, "type": "uint256", "name": "amount"},
-        {"indexed": false, "type": "string", "name": "name"},
-        {"indexed": false, "type": "string", "name": "message"},
-        {"indexed": false, "type": "uint256", "name": "timestamp"}
-      ],
-      "name": "DonationReceived",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {"indexed": true, "type": "address", "name": "owner"},
-        {"indexed": false, "type": "uint256", "name": "amount"}
-      ],
-      "name": "FundsWithdrawn",
-      "type": "event"
-    }
+  // Integration contracts
+  AIT_TOKEN_ADDRESS: "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+  YIELD_POOL_ADDRESS: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+  GOVERNANCE_ADDRESS: "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+  BADGE_NFT_ADDRESS: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+  
+  // Contract ABIs - these will be generated after compilation
+  DONATION_ABI: [
+    // Add your contract ABI here
+  ],
+  AIT_TOKEN_ABI: [
+    // Add your contract ABI here
+  ],
+  GOVERNANCE_ABI: [
+    // Add your contract ABI here
+  ],
+  BADGE_NFT_ABI: [
+    // Add your contract ABI here
   ]
 };
 
@@ -130,5 +40,20 @@ export const NETWORKS = {
     chainId: 1,
     name: "Ethereum Mainnet",
     rpcUrl: "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID"
+  }
+};
+
+// DeFi/ReFi Configuration
+export const DEFI_CONFIG = {
+  TOKENS_PER_ETH: 1000, // 1000 AIT per ETH donated
+  VOTING_PERIOD: 7 * 24 * 60 * 60, // 7 days in seconds
+  YIELD_MAINTENANCE_PERCENTAGE: 30, // 30% of yield for maintenance
+  YIELD_PROJECT_PERCENTAGE: 70, // 70% of yield for new projects
+  BADGE_THRESHOLDS: {
+    BRONZE: 0.01, // 0.01 ETH
+    SILVER: 0.1,  // 0.1 ETH
+    GOLD: 1,      // 1 ETH
+    PLATINUM: 10, // 10 ETH
+    DIAMOND: 100  // 100 ETH
   }
 };

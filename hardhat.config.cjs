@@ -12,8 +12,8 @@ module.exports = {
       {
         version: "0.8.20",
         settings: { optimizer: { enabled: true, runs: 200 } },
-      }
-    ]
+      },
+    ],
   },
   networks: {
     hardhat: {
@@ -30,6 +30,18 @@ module.exports = {
     optimism: {
       url: process.env.OPTIMISM_MAINNET_URL || "https://mainnet.optimism.io",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
+    // ✅ Base Testnet (Sepolia)
+    baseSepolia: {
+      url: process.env.BASE_SEPOLIA_URL || "https://sepolia.base.org",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: 84532,
+    },
+    // ✅ Base Mainnet
+    base: {
+      url: process.env.BASE_MAINNET_URL || "https://mainnet.base.org",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: 8453,
     },
   },
   paths: {
